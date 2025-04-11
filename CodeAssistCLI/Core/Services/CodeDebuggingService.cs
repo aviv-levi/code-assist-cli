@@ -1,12 +1,12 @@
 ﻿using CodeAssistCLI.Models;
 
-namespace CodeAssistCLI.Core.Services
-{
-    public class CodeAnalysisService
-    {
-        private readonly GptService _gptService;
+namespace CodeAssistCLI.Core.Services;
 
-        public CodeAnalysisService(GptService gptService)
+public class CodeDebuggingService
+{
+    private readonly GptService _gptService;
+
+        public CodeDebuggingService(GptService gptService)
         {
             _gptService = gptService;
         }
@@ -16,15 +16,15 @@ namespace CodeAssistCLI.Core.Services
         /// </summary>
         /// <param name="code">The C# code to analyze.</param>
         /// <returns>A user-friendly analysis report.</returns>
-        public async Task<string> AnalyzeCodeAsync(string code, string language)
+        public async Task<string> DebugCodeAsync(string localCode)
         {
-            if (string.IsNullOrWhiteSpace(code))
-                throw new ArgumentException("Code cannot be null or empty.", nameof(code));
+            if (string.IsNullOrWhiteSpace(localCode))
+                throw new ArgumentException("Code cannot be null or empty.", nameof(localCode));
 
             // Prepare the GPT request
             var request = new GptRequest
             {
-                Prompt = GenerateAnalysisPrompt(code, language),
+                Prompt = GenerateDebuggingPrompt(localCode),
                 MaxTokens = 1500,
                 Temperature = 0.7
             };
@@ -33,7 +33,7 @@ namespace CodeAssistCLI.Core.Services
             var rawResponse = await _gptService.SendRequestAsync(request);
 
             // Process raw GPT response if needed (e.g., formatting, extracting key points)
-            return ProcessAnalysisResponse(rawResponse);
+            return ProcessDebuggingResponse(rawResponse);
         }
 
         /// <summary>
@@ -41,30 +41,33 @@ namespace CodeAssistCLI.Core.Services
         /// </summary>
         /// <param name="code">The code to analyze.</param>
         /// <returns>A formatted prompt string.</returns>
-        private string GenerateAnalysisPrompt(string code, string language)
+        private string GenerateDebuggingPrompt(string code)
         {
             return $@"
-You are an AI assistant that performs code analysis and provides helpful insights. Analyze the following {language} code and identify:
+You are an AI assistant that specializes in debugging C# code. Analyze the following code snippet and identify:
 
-1. Any potential issues, including runtime errors, inefficiencies, or code smells.
-2. Suggestions for improving code quality and maintainability.
-3. Specific fixes or examples where applicable.
+Any bugs or incorrect logic that could cause unexpected behavior or errors.
 
-Respond in a structured format like this:
-[INFO] Analysis Results:
+Root causes of the bugs where possible.
 
-[Line X] <Description of the issue>.
-[Line Y] <Description of another issue>. ...
+Step-by-step suggestions for fixing the issues.
+
+Respond in a structured format like this: [DEBUG] Bug Report:
+
+[Line X] <Description of the bug>. [Line Y] <Description of another bug>. ...
+
+Root Causes:
+
+<Explanation of root cause for bug 1>. <Explanation of root cause for bug 2>. ...
+
 Suggested Fixes:
 
-<Suggested fix for issue 1>.
-<Suggested fix for issue 2>. ...
+<Step-by-step fix for bug 1>. <Step-by-step fix for bug 2>. ...
 
-Here is the code to analyze:
+Here is the project code to debug:
 
-```{language}
 {code}
-```
+
 Answer without extra words only the template";
         }
 
@@ -73,7 +76,7 @@ Answer without extra words only the template";
         /// </summary>
         /// <param name="response">Raw response from GPT.</param>
         /// <returns>Formatted analysis report.</returns>
-        private string ProcessAnalysisResponse(string response)
+        private string ProcessDebuggingResponse(string response)
         {
             if (string.IsNullOrWhiteSpace(response))
                 return "[ERROR] Unable to process the request.";
@@ -81,5 +84,4 @@ Answer without extra words only the template";
             // Add additional processing if needed
             return $"\n[INFO] Analysis Results:\n\n{response}";
         }
-    }
 }

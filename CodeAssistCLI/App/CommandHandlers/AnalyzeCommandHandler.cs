@@ -23,7 +23,7 @@ public class AnalyzeCommandHandler
             var codeContent = _fileReader.ReadFile(command.File);
 
             Console.WriteLine("Analyzing code...");
-            var analysisResult = await _codeAnalysisService.AnalyzeCodeAsync(codeContent);
+            var analysisResult = await _codeAnalysisService.AnalyzeCodeAsync(codeContent, command.Language);
 
             Console.WriteLine("Analysis Results:");
             Console.WriteLine(analysisResult);

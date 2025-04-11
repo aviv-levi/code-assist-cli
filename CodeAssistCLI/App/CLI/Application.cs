@@ -18,19 +18,13 @@ public static class Application
 
         // Resolve handlers
         var analyzeCommandHandler = serviceProvider.GetRequiredService<AnalyzeCommandHandler>();
+        var debugCommandHandler = serviceProvider.GetRequiredService<DebugCommandHandler>();
         
-        Parser.Default.ParseArguments<AnalyzeCommand>(args).MapResult(
+        Parser.Default.ParseArguments<AnalyzeCommand, DebugCommand>(args).MapResult(
             (AnalyzeCommand opts) => analyzeCommandHandler.HandleCommand(opts).Result,
+            (DebugCommand opts) => debugCommandHandler.HandleCommand(opts).Result,
             errs => 1
         );
-        
-        // var debugCommandHandler = serviceProvider.GetRequiredService<DebugCommandHandler>();
-        //
-        // Parser.Default.ParseArguments<AnalyzeCommand, DebugCommand>(args).MapResult(
-        //     (AnalyzeCommand opts) => analyzeCommandHandler.HandleCommand(opts).Result,
-        //     (DebugCommand opts) => debugCommandHandler.HandleCommand(opts),
-        //     errs => 1
-        // );
     }
 
     private static ServiceProvider ConfigureServices()
@@ -55,6 +49,7 @@ public static class Application
             return new GptService(new HttpClient(), apiKey);
         });
         services.AddSingleton<CodeAnalysisService>();
+        services.AddSingleton<CodeDebuggingService>();
 
         // Register command handlers
         services.AddSingleton<AnalyzeCommandHandler>(sp =>
@@ -62,7 +57,7 @@ public static class Application
             var codeAnalysisService = sp.GetRequiredService<CodeAnalysisService>();
             return new AnalyzeCommandHandler(codeAnalysisService, new FileReader());
         });
-        // services.AddSingleton<DebugCommandHandler>();
+        services.AddSingleton<DebugCommandHandler>();
 
         // Build service provider
         return services.BuildServiceProvider();
