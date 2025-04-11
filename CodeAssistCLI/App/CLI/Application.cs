@@ -1,6 +1,7 @@
 ﻿using CodeAssistCLI.App.CommandHandlers;
 using CodeAssistCLI.App.Commands;
 using CodeAssistCLI.Core.Services;
+using CodeAssistCLI.Infrastructure.IO;
 using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -17,6 +18,12 @@ public static class Application
 
         // Resolve handlers
         var analyzeCommandHandler = serviceProvider.GetRequiredService<AnalyzeCommandHandler>();
+        
+        Parser.Default.ParseArguments<AnalyzeCommand>(args).MapResult(
+            (AnalyzeCommand opts) => analyzeCommandHandler.HandleCommand(opts).Result,
+            errs => 1
+        );
+        
         // var debugCommandHandler = serviceProvider.GetRequiredService<DebugCommandHandler>();
         //
         // Parser.Default.ParseArguments<AnalyzeCommand, DebugCommand>(args).MapResult(
@@ -50,7 +57,11 @@ public static class Application
         services.AddSingleton<CodeAnalysisService>();
 
         // Register command handlers
-        services.AddSingleton<AnalyzeCommandHandler>();
+        services.AddSingleton<AnalyzeCommandHandler>(sp =>
+        {
+            var codeAnalysisService = sp.GetRequiredService<CodeAnalysisService>();
+            return new AnalyzeCommandHandler(codeAnalysisService, new FileReader());
+        });
         // services.AddSingleton<DebugCommandHandler>();
 
         // Build service provider
