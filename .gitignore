@@ -1,0 +1,25 @@
+# Rider-specific
+.idea/
+*.sln.iml
+
+# Build files
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Dependency directories
+packages/
+.vscode/
+.nuget/
+
+# Misc
+.DS_Store
+Thumbs.db

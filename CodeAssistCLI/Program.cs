@@ -1,0 +1,1 @@
+﻿CodeAssistCLI.App.CLI.Application.Run(args);
